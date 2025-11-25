@@ -1,0 +1,5 @@
+function(ctx) {
+  id: ctx.identity.id,
+  email: ctx.identity.traits.email,
+  name: ctx.identity.traits.name,
+}

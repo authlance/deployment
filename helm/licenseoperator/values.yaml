@@ -1,0 +1,76 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/authlance/license-operator
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  # Optional - set to override the image tag, e.g. "sha256:1234567890"
+  digest: ""
+
+duna:
+  url: https://LICENSEOPERATOR_HOSTNAME
+  basePath: ""
+  configSecret: LICENSEOPERATOR_CONFIG_SECRET
+
+# Image pull secret configuration (use your registry credentials)
+imageCredentials:
+  # pullSecret: "my-customer-pull-secret"
+  enabled: true
+  registry: registry.digitalocean.com
+  username: LICENSEOPERATOR_REGISTRY_USER
+  password: LICENSEOPERATOR_REGISTRY_PASSWORD
+  email: unused
+
+ingress:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: LICENSEOPERATOR_HOSTNAME
+  className: nginx
+  tls:
+    - secretName: LICENSEOPERATOR_TLS_SECRET
+
+service:
+  type: ClusterIP
+  port: 1080
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "authlance-licenseoperator"
+
+podAnnotations: {}
+
+securityContext: {}
+
+authlanceLicense:
+  # secretName: "license-operator-authlance-license"
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+resources: {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # limits:
+  #   cpu: 300m
+  #   memory: 256Mi

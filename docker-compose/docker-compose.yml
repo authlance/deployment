@@ -1,0 +1,345 @@
+---
+version: "3.9"
+services:
+  mysql:
+    image: ${MYSQL_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ}
+      AUTH_DB_NAME: ${AUTH_DB_NAME}
+      AUTH_DB_USER: ${AUTH_DB_USER}
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      LICENSE_DB_NAME: ${LICENSE_DB_NAME}
+      LICENSE_DB_USER: ${LICENSE_DB_USER}
+      LICENSE_DB_PASSWORD: ${LICENSE_DB_PASSWORD}
+      LOOP_DB_NAME: ${LOOP_DB_NAME}
+      LOOP_DB_USER: ${LOOP_DB_USER}
+      LOOP_DB_PASSWORD: ${LOOP_DB_PASSWORD}
+      KRATOS_DB_NAME: ${KRATOS_DB_NAME}
+      KRATOS_DB_USER: ${KRATOS_DB_USER}
+      KRATOS_DB_PASSWORD: ${KRATOS_DB_PASSWORD}
+      HYDRA_DB_NAME: ${HYDRA_DB_NAME}
+      HYDRA_DB_USER: ${HYDRA_DB_USER}
+      HYDRA_DB_PASSWORD: ${HYDRA_DB_PASSWORD}
+    ports:
+      - "${MYSQL_LOCAL_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks:
+      - default
+
+  kratos-migrate:
+    image: ${KRATOS_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-kratos-migrate
+    command: ["migrate", "sql", "-e", "--yes", "-c", "/etc/kratos/kratos.yml"]
+    volumes:
+      - ory_kratos_config:/etc/kratos:ro
+    depends_on:
+      ory-templates:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - default
+
+  kratos:
+    image: ${KRATOS_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-kratos
+    command: ["serve", "-c", "/etc/kratos/kratos.yml"]
+    volumes:
+      - ory_kratos_config:/etc/kratos:ro
+    depends_on:
+      kratos-migrate:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+    expose:
+      - "4433"
+      - "4434"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4433/health/ready >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks:
+      - default
+
+  kratos-courier:
+    image: ${KRATOS_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-kratos-courier
+    command: ["courier", "watch", "-c", "/etc/kratos/kratos.yml"]
+    volumes:
+      - ory_kratos_config:/etc/kratos:ro
+    depends_on:
+      kratos:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - default
+
+  hydra-migrate:
+    image: ${HYDRA_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-hydra-migrate
+    command: ["migrate", "sql", "-e", "--yes", "-c", "/etc/hydra/config.yaml"]
+    volumes:
+      - ory_hydra_config:/etc/hydra:ro
+    depends_on:
+      ory-templates:
+        condition: service_completed_successfully
+      kratos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - default
+
+  hydra:
+    image: ${HYDRA_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-hydra
+    command: ["serve", "all", "-c", "/etc/hydra/config.yaml", "--dev"]
+    volumes:
+      - ory_hydra_config:/etc/hydra:ro
+    depends_on:
+      hydra-migrate:
+        condition: service_completed_successfully
+    expose:
+      - "4444"
+      - "4445"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4444/health/ready >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks:
+      - default
+  ory-templates:
+    image: alpine:3.19
+    container_name: ${COMPOSE_PROJECT_NAME}-ory-templates
+    entrypoint: ["/bin/sh","-c"]
+    command:
+      - >-
+        set -euo pipefail;
+        apk add --no-cache gettext >/dev/null;
+        mkdir -p /out/kratos /out/hydra /out/app/auth /out/app/license;
+        envsubst < /templates/ory/kratos/kratos.yml.template > /out/kratos/kratos.yml;
+        envsubst < /templates/ory/kratos/identity.schema.json.template > /out/kratos/identity.schema.json;
+        envsubst < /templates/ory/kratos/mail.api.request.jsonnet.template > /out/kratos/mail.api.request.jsonnet;
+        envsubst < /templates/ory/kratos/register.api.request.jsonnet.template > /out/kratos/register.api.request.jsonnet;
+        envsubst < /templates/ory/hydra/config.yaml.template > /out/hydra/config.yaml;
+        envsubst < /templates/app/auth/config.yaml.template > /out/app/auth/config.yaml;
+        envsubst < /templates/app/license/config.yaml.template > /out/app/license/config.yaml;
+        if [ -f /licenses/authlance.lic ]; then cp /licenses/authlance.lic /out/app/auth/authlance.lic; fi;
+        cp /templates/app/license/trialLicense /out/app/license/trialLicense;
+        echo "Templates rendered.";
+    environment:
+      - KRATOS_DB_NAME=${KRATOS_DB_NAME}
+      - KRATOS_DB_USER=${KRATOS_DB_USER}
+      - KRATOS_DB_PASSWORD=${KRATOS_DB_PASSWORD}
+      - HYDRA_DB_NAME=${HYDRA_DB_NAME}
+      - HYDRA_DB_USER=${HYDRA_DB_USER}
+      - HYDRA_DB_PASSWORD=${HYDRA_DB_PASSWORD}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
+      - KRATOS_PUBLIC_BASE_URL=${KRATOS_PUBLIC_BASE_URL}
+      - OAUTH2_PROVIDER_AUTH_HEADER=${OAUTH2_PROVIDER_AUTH_HEADER}
+      - REGISTRATION_WEBHOOK_URL="http://authlance:${MAIL_PORT}/authlance/identity/email/register"
+      - REGISTRATION_WEBHOOK_AUTH_HEADER=${REGISTRATION_WEBHOOK_AUTH_HEADER}
+      - COURIER_HTTP_URL="http://authlance:${MAIL_PORT}/authlance/identity/email"
+      - COURIER_HTTP_BASIC_USER=${COURIER_HTTP_BASIC_USER}
+      - COURIER_HTTP_BASIC_PASSWORD=${COURIER_HTTP_BASIC_PASSWORD}
+      - KRATOS_COOKIE_SECRET=${KRATOS_COOKIE_SECRET}
+      - KRATOS_CIPHER_SECRET=${KRATOS_CIPHER_SECRET}
+      - HYDRA_SYSTEM_SECRET=${HYDRA_SYSTEM_SECRET}
+      - HYDRA_ISSUER_URL=${HYDRA_ISSUER_URL}
+      - IDENTITY_SCHEMA_ID_URL=${IDENTITY_SCHEMA_ID_URL}
+      - IDENTITY_SCHEMA_TITLE=${IDENTITY_SCHEMA_TITLE}
+      - MAIL_SENDER_EMAIL=${MAIL_SENDER_EMAIL}
+      # App templates (auth)
+      - AUTH_PORT=${AUTH_PORT}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - AUTH_DB_USER=${AUTH_DB_USER}
+      - AUTH_DB_PASSWORD=${AUTH_DB_PASSWORD}
+      - AUTH_DB_NAME=${AUTH_DB_NAME}
+      - KRATOS_PUBLIC_URL=${KRATOS_PUBLIC_URL}
+      - KRATOS_ADMIN_URL=${KRATOS_ADMIN_URL}
+      - HYDRA_PUBLIC_URL=${HYDRA_PUBLIC_URL}
+      - HYDRA_ADMIN_URL=${HYDRA_ADMIN_URL}
+      - HYDRA_LOGIN_TOKEN=${HYDRA_LOGIN_TOKEN}
+      - NATS_URL=${NATS_URL}
+      - AUTH_JWT_KEY=${AUTH_JWT_KEY}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN}
+      - AUTH_AUTO_CREATE_GROUP=${AUTH_AUTO_CREATE_GROUP}
+      - AUTH_ADMIN_EMAIL=${AUTH_ADMIN_EMAIL}
+      - AUTH_ADMIN_FIRST_NAME=${AUTH_ADMIN_FIRST_NAME}
+      - AUTH_ADMIN_LAST_NAME=${AUTH_ADMIN_LAST_NAME}
+      - AUTH_ADMIN_GROUP=${AUTH_ADMIN_GROUP}
+      - AUTH_ADMIN_IS_ADMIN=${AUTH_ADMIN_IS_ADMIN}
+      - AUTH_REQUIRE_GENDER_EXTRA=${AUTH_REQUIRE_GENDER_EXTRA}
+      - AUTH_REQUIRE_BIRTHDATE_EXTRA=${AUTH_REQUIRE_BIRTHDATE_EXTRA}
+      - AUTH_BACKUP_DB1=${AUTH_BACKUP_DB1}
+      - AUTH_BACKUP_DB2=${AUTH_BACKUP_DB2}
+      - AUTH_BACKUP_DB3=${AUTH_BACKUP_DB3}
+      - AUTH_DEBUG=${AUTH_DEBUG}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - S3_KEY=${S3_KEY}
+      - S3_SECRET=${S3_SECRET}
+      - S3_REGION=${S3_REGION}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_SECONDARY_BUCKET=${S3_SECONDARY_BUCKET}
+      - S3_CDN_URL=${S3_CDN_URL}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_WEBHOOK_BASE_URL=${STRIPE_WEBHOOK_BASE_URL}
+      - STRIPE_SUCCESS_BASE_URL=${STRIPE_SUCCESS_BASE_URL}
+      - STRIPE_ROOT_APP_URL=${STRIPE_ROOT_APP_URL}
+      - STRIPE_FRONTEND_BASE_PATH=${STRIPE_FRONTEND_BASE_PATH}
+      - STRIPE_TRIAL_PERIOD_DAYS=${STRIPE_TRIAL_PERIOD_DAYS}
+      - STRIPE_PORTAL_RETURN_URL=${STRIPE_PORTAL_RETURN_URL}
+      - LICENSE_PATH=${LICENSE_PATH}
+      - LICENSE_REFRESH_INTERVAL=${LICENSE_REFRESH_INTERVAL}
+      - LICENSE_GRACE_PERIOD_DAYS=${LICENSE_GRACE_PERIOD_DAYS}
+      # App templates (licenseoperator)
+      - LO_SERVER_ADDR=${LO_SERVER_ADDR}
+      - LO_PUBLIC_BASE_URL=${LO_PUBLIC_BASE_URL}
+      - LO_PRIVATE_KEY_PEM=${LO_PRIVATE_KEY_PEM}
+      - LO_PUBLIC_KEY_PEM=${LO_PUBLIC_KEY_PEM}
+      - LO_JWT_SECRET=${LO_JWT_SECRET}
+      - LO_ISSUER=${LO_ISSUER}
+      - LO_AUDIENCE=${LO_AUDIENCE}
+      - LO_TOKEN_TTL=${LO_TOKEN_TTL}
+      - LO_STRIPE_API_KEY=${LO_STRIPE_API_KEY}
+      - LO_STRIPE_WEBHOOK_SECRET=${LO_STRIPE_WEBHOOK_SECRET}
+      - LO_STRIPE_ENSURE_WEBHOOK=${LO_STRIPE_ENSURE_WEBHOOK}
+      - LO_STRIPE_REQUIRE_GROUP_NAME=${LO_STRIPE_REQUIRE_GROUP_NAME}
+      - LO_STRIPE_ROOT_APP_URL=${LO_STRIPE_ROOT_APP_URL}
+      - LO_STRIPE_SUCCESS_BASE_URL=${LO_STRIPE_SUCCESS_BASE_URL}
+      - LO_STRIPE_PORTAL_RETURN_URL=${LO_STRIPE_PORTAL_RETURN_URL}
+      - LO_STRIPE_TRIAL_PERIOD_DAYS=${LO_STRIPE_TRIAL_PERIOD_DAYS}
+      - LO_STRIPE_SYNC_PRODUCTS_ON_STARTUP=${LO_STRIPE_SYNC_PRODUCTS_ON_STARTUP}
+      - LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG=${LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG}
+      - LO_STRIPE_DEFAULT_ONE_OFF_SLUG=${LO_STRIPE_DEFAULT_ONE_OFF_SLUG}
+      - LO_FRONTEND_BASE_PATH=${LO_FRONTEND_BASE_PATH}
+      - LO_LICENSE_FILE_PATH=${LO_LICENSE_FILE_PATH}
+      - LO_LICENSE_EXPECTED_DOMAIN=${LO_LICENSE_EXPECTED_DOMAIN}
+      - LO_LICENSE_GRACE_DAYS=${LO_LICENSE_GRACE_DAYS}
+      - LO_LICENSE_REFRESH_INTERVAL=${LO_LICENSE_REFRESH_INTERVAL}
+      - LICENSE_DB_USER=${LICENSE_DB_USER}
+      - LICENSE_DB_PASSWORD=${LICENSE_DB_PASSWORD}
+      - LICENSE_DB_NAME=${LICENSE_DB_NAME}
+    volumes:
+      - ./templates:/templates:ro
+      - ory_kratos_config:/out/kratos
+      - ory_hydra_config:/out/hydra
+      - app_auth_config:/out/app/auth
+      - app_license_config:/out/app/license
+      - ./licenses:/licenses:ro
+    restart: "no"
+    networks:
+      - default
+
+  authlance:
+    image: ${AUTH_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-authlance
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - app_auth_config:/app/config:ro
+    expose:
+      - "1080"
+    depends_on:
+      ory-templates:
+        condition: service_completed_successfully
+      kratos:
+        condition: service_healthy
+      hydra:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - default
+
+  licenseoperator:
+    image: ${LICENSE_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-licenseoperator
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - app_license_config:/app/config:ro
+    expose:
+      - "1080"
+    depends_on:
+      ory-templates:
+        condition: service_completed_successfully
+      kratos:
+        condition: service_healthy
+      hydra:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - default
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-nats
+    command: ["-js","-m","8222"]
+    ports:
+      - "${NATS_LOCAL_PORT:-4222}:4222"
+      - "${NATS_HTTP_PORT:-8222}:8222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8222/ >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks:
+      - default
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    ports:
+      - "${NGINX_LOCAL_PORT:-8080}:80"
+      - "${NGINX_HTTPS_PORT:-8443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      kratos:
+        condition: service_healthy
+      hydra:
+        condition: service_healthy
+      authlance:
+        condition: service_started
+      licenseoperator:
+        condition: service_started
+    networks:
+      - default
+
+volumes:
+  mysql_data:
+  ory_kratos_config:
+  ory_hydra_config:
+  app_auth_config:
+  app_license_config:
+
+networks:
+  default:
+    name: ${DOCKER_DEFAULT_NETWORK}

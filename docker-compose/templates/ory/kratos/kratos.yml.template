@@ -1,0 +1,130 @@
+version: v1.3.0
+
+# Database connection (MySQL)
+dsn: mysql://${KRATOS_DB_USER}:${KRATOS_DB_PASSWORD}@tcp(mysql:3306)/${KRATOS_DB_NAME}?parseTime=true&multiStatements=true&charset=utf8mb4
+
+serve:
+  public:
+    base_url: ${FRONTEND_BASE_URL}/authlance/identity/
+    cors:
+      enabled: true
+      allowed_origins:
+        - ${FRONTEND_BASE_URL}
+      allowed_methods:
+        - GET
+        - POST
+      allowed_headers:
+        - '*'
+      allow_credentials: true
+  admin:
+    base_url: http://kratos:4434/
+
+oauth2_provider:
+  url: ${FRONTEND_BASE_URL}/authlance/openid
+  headers:
+    Authorization: ${OAUTH2_PROVIDER_AUTH_HEADER}
+
+selfservice:
+  default_browser_return_url: ${FRONTEND_BASE_URL}
+  allowed_return_urls:
+    - ${FRONTEND_BASE_URL}
+
+  methods:
+    password:
+      enabled: true
+    totp:
+      config:
+        issuer: Kratos
+      enabled: true
+    lookup_secret:
+      enabled: true
+    link:
+      enabled: true
+    code:
+      enabled: true
+
+  flows:
+    error:
+      ui_url: ${FRONTEND_BASE_URL}/error
+
+    settings:
+      ui_url: ${FRONTEND_BASE_URL}/user/profile
+      privileged_session_max_age: 15m
+      required_aal: highest_available
+
+    recovery:
+      enabled: true
+      ui_url: ${FRONTEND_BASE_URL}/recovery
+      use: code
+
+    verification:
+      enabled: true
+      ui_url: ${FRONTEND_BASE_URL}/verify
+      use: code
+      after:
+        default_browser_return_url: ${FRONTEND_BASE_URL}
+
+    logout:
+      after:
+        default_browser_return_url: ${FRONTEND_BASE_URL}
+
+    login:
+      ui_url: ${FRONTEND_BASE_URL}/login
+      lifespan: 10m
+
+    registration:
+      lifespan: 10m
+      ui_url: ${FRONTEND_BASE_URL}/register
+      after:
+        password:
+          hooks:
+            - hook: show_verification_ui
+            - hook: web_hook
+              config:
+                method: POST
+                url: ${REGISTRATION_WEBHOOK_URL}
+                body: file:///etc/kratos/register.api.request.jsonnet
+                headers:
+                  Authorization: ${REGISTRATION_WEBHOOK_AUTH_HEADER}
+
+log:
+  level: info
+  format: text
+
+secrets:
+  cookie:
+    - ${KRATOS_COOKIE_SECRET}
+  cipher:
+    - ${KRATOS_CIPHER_SECRET}
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///etc/kratos/identity.schema.json
+
+courier:
+  delivery_strategy: http
+  http:
+    request_config:
+      url: ${COURIER_HTTP_URL}
+      method: POST
+      body: file:///etc/kratos/mail.api.request.jsonnet
+      headers:
+        "Content-Type": "application/json"
+      auth:
+        type: basic_auth
+        config:
+          user: "${COURIER_HTTP_BASIC_USER}"
+          password: "${COURIER_HTTP_BASIC_PASSWORD}"
+
+feature_flags:
+  use_continue_with_transitions: true

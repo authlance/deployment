@@ -1,0 +1,107 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/codetogether/authlance-auth
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  # Optional - set to override the image tag, e.g. "sha256:1234567890"
+  digest: ""
+
+duna:
+  url: https://DUNA_AUTH_HOSTNAME
+  basePath: DUNA_AUTH_BASE_PATH
+  configSecret: DUNA_AUTH_CONFIG_SECRET
+
+authlanceLicense:
+  secretName: ""
+
+#
+# Configure the source location for the Docker image, using the
+# credentials provided by your CodeTogether Sales Representative.
+#
+imageCredentials:
+  # pullSecret: "my-customer-pull-secret"
+  # Use pullSecret or configure credentials if using private Docker registry.
+  enabled: true
+  registry: registry.digitalocean.com
+  username: DUNA_AUTH_REGISTRY_USER
+  password: DUNA_AUTH_REGISTRY_PASSWORD
+  email: unused
+
+#
+# Enables and configures Ingress (default = Nginx). The className value can be used
+# to change the default behavior. Please read the comments below to see details.
+#
+ingress:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: DUNA_AUTH_HOSTNAME
+  className: nginx
+  tls:
+    - secretName: DUNA_AUTH_TLS_SECRET
+
+#
+# The following sections provide default configurations for the
+# container and normally do not need to be modified.
+# -------------------------------------------------------------------------
+#
+service:
+  type: ClusterIP
+  port: 1080
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "duna-auth"
+
+podAnnotations: {}
+
+securityContext: {}
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 60
+  timeoutSeconds: 15
+  successThreshold: 1
+  failureThreshold: 1
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 60
+  timeoutSeconds: 15
+  successThreshold: 1
+  failureThreshold: 1
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+#
+# Configures a periodic restart of the duna server in the running container.
+#
+# @since 2022.2.2-1381
+#
+restart:
+  enabled: true
+  # by default restart is scheduled on every Sunday 11 AM
+  cronPattern: "* 11 * * 0"
+
+backup:
+  enabled: true
+  schedule: "0 6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+resources: {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # limits:
+  #   cpu: 300m
+  #   memory: 256Mi

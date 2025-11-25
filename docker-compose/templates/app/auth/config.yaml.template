@@ -1,0 +1,96 @@
+port: ${AUTH_PORT}
+
+database:
+  host: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  user: ${AUTH_DB_USER}
+  password: ${AUTH_DB_PASSWORD}
+  dbname: ${AUTH_DB_NAME}
+
+kratos:
+  url: ${KRATOS_PUBLIC_URL}
+  adminUrl: ${KRATOS_ADMIN_URL}
+
+hydra:
+  url: ${HYDRA_PUBLIC_URL}
+  adminUrl: ${HYDRA_ADMIN_URL}
+  hydraLoginToken: ${HYDRA_LOGIN_TOKEN}
+
+authlance:
+  autoCreateGroup: ${AUTH_AUTO_CREATE_GROUP}
+
+users:
+  - email: ${AUTH_ADMIN_EMAIL}
+    admin: ${AUTH_ADMIN_IS_ADMIN}
+    firstName: ${AUTH_ADMIN_FIRST_NAME}
+    lastName: ${AUTH_ADMIN_LAST_NAME}
+    groups:
+      - ${AUTH_ADMIN_GROUP}
+
+requireGenderExtra: ${AUTH_REQUIRE_GENDER_EXTRA}
+requireBirthDateExtra: ${AUTH_REQUIRE_BIRTHDATE_EXTRA}
+
+nats:
+  url: ${NATS_URL}
+
+jwtKey: ${AUTH_JWT_KEY}
+cookieDomain: ${COOKIE_DOMAIN}
+debug: ${AUTH_DEBUG}
+
+mailAuth:
+  port: ${MAIL_PORT}
+  user: ${MAIL_USER}
+  password: ${MAIL_PASSWORD}
+
+s3Config:
+  key: "${S3_KEY}"
+  secret: "${S3_SECRET}"
+  region: "${S3_REGION}"
+  endpoint: "${S3_ENDPOINT}"
+  bucket: "${S3_BUCKET}"
+  secondaryBucket: "${S3_SECONDARY_BUCKET}"
+  cdnUrl: "${S3_CDN_URL}"
+
+backup:
+  databases:
+    - ${AUTH_BACKUP_DB1}
+    - ${AUTH_BACKUP_DB2}
+    - ${AUTH_BACKUP_DB3}
+
+personalAccessTokens:
+  routeScopes:
+    - method: GET
+      path: /authlance/identity/api/v1/profile
+      scope: public_scope
+    - path: /authlance/identity/api/v1/profile/*
+      scope: public_scope
+
+stripe:
+  secretKey: "${STRIPE_SECRET_KEY}"
+  webhookSecret: "${STRIPE_WEBHOOK_SECRET}"
+  webhookBaseUrl: "${STRIPE_WEBHOOK_BASE_URL}"
+  successBaseUrl: "${STRIPE_SUCCESS_BASE_URL}"
+  rootAppUrl: "${STRIPE_ROOT_APP_URL}"
+  frontEndBasePath: "${STRIPE_FRONTEND_BASE_PATH}"
+  trialPeriodDays: ${STRIPE_TRIAL_PERIOD_DAYS}
+  portalReturnUrl: "${STRIPE_PORTAL_RETURN_URL}"
+
+license:
+  filePath: "${LICENSE_PATH}"
+  refreshInterval: "${LICENSE_REFRESH_INTERVAL}"
+  gracePeriodDays: ${LICENSE_GRACE_PERIOD_DAYS}
+
+# paymentTier is optional. Uncomment and fill when you need to enforce a tiered
+# membership cap for subscriptions. See docs/deployment/docker-compose for
+# guidance on customizing these templates.
+# paymentTier:
+#   tierName: "Standard"
+#   maxMembers: 5
+#   price: 10.0
+#   billingCycle: "monthly"
+#   lookupKey: "standard_monthly"
+#   tierDescription: "Standard tier for individual users"
+
+events:
+  disableUserAuthenticated: ${AUTH_EVENTS_DISABLE_USER_AUTHENTICATED}
+  disableSubscriptionEvents: ${AUTH_EVENTS_DISABLE_SUBSCRIPTION_EVENTS}

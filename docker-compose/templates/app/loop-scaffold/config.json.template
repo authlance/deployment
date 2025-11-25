@@ -1,0 +1,40 @@
+{
+  "database": {
+    "user": "${LOOP_DB_USER}",
+    "password": "${LOOP_DB_PASSWORD}",
+    "host": "${MYSQL_HOST}",
+    "port": ${MYSQL_PORT},
+    "schema": "${LOOP_DB_NAME}"
+  },
+  "cors": {
+    "allowedOrigins": [
+      "${CORS_ORIGIN}"
+    ]
+  },
+  "nats": {
+    "url": "${NATS_URL}"
+  },
+  "postmark": {
+    "server": "${POSTMARK_SERVER}",
+    "key": "${POSTMARK_KEY}",
+    "company": "${POSTMARK_COMPANY}",
+    "templates": {
+      "verification_code_valid": {
+        "alias": "verify-email",
+        "from": "${POSTMARK_FROM_EMAIL}",
+        "fromName": "${POSTMARK_FROM_NAME}",
+        "fromPosition": "${POSTMARK_FROM_POSITION}"
+      },
+      "recovery_code_valid": {
+        "alias": "recover-account",
+        "from": "${POSTMARK_FROM_EMAIL}",
+        "fromName": "${POSTMARK_FROM_NAME}",
+        "fromPosition": "${POSTMARK_FROM_POSITION}"
+      }
+    }
+  },
+  "jwtSecret": "${LOOP_JWT_SECRET}",
+  "rootAppUrl": "${FRONTEND_BASE_URL}",
+  "basePath": "${LOOP_BASE_PATH}",
+  "frontEndBasePath": "${LOOP_FRONTEND_BASE_PATH}"
+}

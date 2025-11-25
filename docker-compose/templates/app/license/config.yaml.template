@@ -1,0 +1,264 @@
+server:
+  addr: "${LO_SERVER_ADDR}"
+  public_base_url: "${LO_PUBLIC_BASE_URL}"
+
+security:
+  - product_key: "licenseoperator-subscription"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_LICENSEOPERATOR_SUBSCRIPTION}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_LICENSEOPERATOR_SUBSCRIPTION}
+      -----END PUBLIC KEY-----
+  - product_key: "licenseoperator-one-off"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_LICENSEOPERATOR_ONE_OFF}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_LICENSEOPERATOR_ONE_OFF}
+      -----END PUBLIC KEY-----
+  - product_key: "core"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_CORE}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_CORE}
+      -----END PUBLIC KEY-----
+  - product_key: "bundle-core-licenseoperator-subscription"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_BUNDLE_CORE_LICENSEOPERATOR_SUBSCRIPTION}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_BUNDLE_CORE_LICENSEOPERATOR_SUBSCRIPTION}
+      -----END PUBLIC KEY-----
+  - product_key: "bundle-core-licenseoperator-one-off"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_BUNDLE_CORE_LICENSEOPERATOR_ONE_OFF}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_BUNDLE_CORE_LICENSEOPERATOR_ONE_OFF}
+      -----END PUBLIC KEY-----
+  - product_key: "core_one_off"
+    private_key_pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      ${YOUR_PRIVATE_KEY_CORE_ONE_OFF}
+      -----END RSA PRIVATE KEY-----
+    public_key_pem: |-
+      -----BEGIN PUBLIC KEY-----
+      ${YOUR_PUBLIC_KEY_CORE_ONE_OFF}
+      -----END PUBLIC KEY-----
+
+internal_auth:
+  jwt_secret: "${LO_JWT_SECRET}"
+  issuer: "${LO_ISSUER}"
+  audience: "${LO_AUDIENCE}"
+  token_ttl: ${LO_TOKEN_TTL}
+
+stripe:
+  api_key: "${LO_STRIPE_API_KEY}"
+  webhook_secret: "${LO_STRIPE_WEBHOOK_SECRET}"
+  ensure_webhook: ${LO_STRIPE_ENSURE_WEBHOOK}
+  require_group_name: ${LO_STRIPE_REQUIRE_GROUP_NAME}
+  root_app_url: "${LO_STRIPE_ROOT_APP_URL}"
+  success_base_url: "${LO_STRIPE_SUCCESS_BASE_URL}"
+  frontend_base_path: "${LO_FRONTEND_BASE_PATH}"
+  portal_return_url: "${LO_STRIPE_PORTAL_RETURN_URL}"
+  trial_period_days: ${LO_STRIPE_TRIAL_PERIOD_DAYS}
+  sync_products_on_startup: ${LO_STRIPE_SYNC_PRODUCTS_ON_STARTUP}
+  enable_automatic_taxes: ${LO_STRIPE_ENABLE_AUTOMATIC_TAXES}
+  default_subscription_slug: "${LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG}"
+  default_one_off_slug: "${LO_STRIPE_DEFAULT_ONE_OFF_SLUG}"
+  products:
+    - slug: "core-subscription"
+      name: "Authlance On-Prem Core License"
+      description: "Recurring subscription for Authlance core self-hosted deployments."
+      type: "subscription"
+      pricing_mode: "fixed"
+      plan: "core"
+      product_key: "core"
+      active: true
+      currency: "usd"
+      unit_amount: 19900
+      base_amount: 19900
+      billing_interval: "year"
+      billing_interval_count: 1
+      trial_period_days: 30
+      stripe_product_id: "prod_TRs9bd7o3thPuV"
+      stripe_price_id: "price_1SUyOyJI7vQ9Sj8qUtMs9sMf"
+      lookup_key: "core-subscription"
+      metadata:
+        tier: "core"
+      max_license_total: 1
+    - slug: "core-one-off"
+      name: "Authlance Core One-Off License"
+      description: "One-year one-off license for Authlance core deployments."
+      type: "one_off"
+      pricing_mode: "fixed"
+      plan: "core"
+      product_key: "core_one_off"
+      active: true
+      currency: "usd"
+      unit_amount: 21900
+      base_amount: 21900
+      billing_interval: "one_time"
+      term_duration_days: 365
+      stripe_product_id: "prod_xxxxx"
+      stripe_price_id: "price_xxxxx"
+      lookup_key: "core-one-off"
+    - slug: "licenseoperator-tiered-subscription"
+      name: "License Operator Tiered Subscription"
+      description: "Tiered subscription pricing for License Operator deployments."
+      type: "subscription"
+      pricing_mode: "tiered"
+      plan: "licenseoperator-subscription-tiered"
+      product_key: "licenseoperator-subscription"
+      stripe_product_id: "prod_xxxxx"
+      stripe_price_id: "price_xxxxx"
+      active: true
+      currency: "usd"
+      unit_amount: 9900
+      base_amount: 9900
+      billing_interval: "year"
+      billing_interval_count: 1
+      trial_period_days: 30
+      lookup_key: "licenseoperator-tiered-subscription"
+      coupons:
+        - code: "tier10"
+          active: true
+          min_managed_products: 10
+          max_per_group: 1
+          behavior: "stripe_promotion"
+          stripe:
+            percent_off: 25
+            duration: "forever"
+      pricing_tiers:
+        - upper_bound: 3
+          amount: 9900
+        - upper_bound: 6
+          amount: 12000
+        - upper_bound: 10
+          amount: 24900
+        - factor: 0.225
+          per_unit: true
+    - slug: "licenseoperator-tiered-one-off"
+      name: "License Operator Tiered One-Off License"
+      description: "Tiered one-off pricing for License Operator deployments."
+      type: "one_off"
+      pricing_mode: "tiered"
+      plan: "licenseoperator-one-off-tiered"
+      product_key: "licenseoperator-one-off"
+      stripe_product_id: "prod_xxxxx"
+      stripe_price_id: "price_xxxxx"
+      active: true
+      currency: "usd"
+      unit_amount: 9900
+      base_amount: 9900
+      billing_interval: "one_time"
+      term_duration_days: 365
+      lookup_key: "licenseoperator-tiered-one-off"
+      pricing_tiers:
+        - upper_bound: 3
+          amount: 12000
+        - upper_bound: 5
+          amount: 14000
+        - upper_bound: 10
+          amount: 26000
+        - factor: 0.225
+          per_unit: true
+    - slug: "core-licenseoperator-bundle-subscription"
+      name: "XXXX Core + License Operator Bundle Subscription"
+      description: "Combined subscription for XXXX core and License Operator deployments."
+      type: "subscription"
+      pricing_mode: "fixed"
+      plan: "bundle-core-licenseoperator-subscription"
+      product_key: "bundle-core-licenseoperator-subscription"
+      active: true
+      currency: "usd"
+      unit_amount: 27900
+      base_amount: 27900
+      billing_interval: "year"
+      billing_interval_count: 1
+      trial_period_days: 30
+      stripe_product_id: "prod_xxxxx"
+      stripe_price_id: "price_xxxxx"
+      lookup_key: "core-licenseoperator-bundle-subscription"
+      metadata:
+        bundle: "core+licenseoperator"
+        tier: "bundle"
+      bundled_products:
+        - product_key: "core"
+          quantity: 1
+        - product_key: "licenseoperator-subscription"
+          quantity: 1
+          managed_products: 5
+    - slug: "core-licenseoperator-bundle-one-off"
+      name: "XXXX Core + License Operator Bundle One-Off License"
+      description: "One-year bundle license combining XXXX core and License Operator."
+      type: "one_off"
+      pricing_mode: "fixed"
+      plan: "bundle-core-licenseoperator-one-off"
+      product_key: "bundle-core-licenseoperator-one-off"
+      active: true
+      currency: "usd"
+      unit_amount: 29900
+      base_amount: 29900
+      billing_interval: "one_time"
+      term_duration_days: 365
+      stripe_product_id: "prod_xxxxx"
+      stripe_price_id: "price_xxxxx"
+      lookup_key: "core-licenseoperator-bundle-one-off"
+      metadata:
+        bundle: "core+licenseoperator"
+        tier: "bundle"
+      bundled_products:
+        - product_key: "core_one_off"
+          quantity: 1
+        - product_key: "licenseoperator-one-off"
+          quantity: 1
+          managed_products: 5
+
+nats:
+  url: "${NATS_URL}"
+  subject_license_issued: "licenseoperator.license.issued"
+
+mysql:
+  dsn: "${LICENSE_DB_USER}:${LICENSE_DB_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${LICENSE_DB_NAME}?parseTime=true"
+  max_open_conns: 10
+  max_idle_conns: 5
+
+retention:
+  keep_days: 30
+  delete_only_trials: true
+  schedule_cron: "0 3 * * *"
+
+trials:
+  enabled: true
+  duration_hours: 8
+
+product_display:
+  description: "Self-hosted license for one deployment."
+  features:
+    - "Docker Compose install"
+    - "One deployment"
+    - "Email support not guaranteed"
+
+license_policy:
+  default_plan: "subscription"
+  default_term_days: 365
+  default_price_locked: false
+
+license:
+  file_path: "${LO_LICENSE_FILE_PATH}"
+  expected_domain: "${LO_LICENSE_EXPECTED_DOMAIN}"
+  grace_days: ${LO_LICENSE_GRACE_DAYS}
+  refresh_interval: "${LO_LICENSE_REFRESH_INTERVAL}"

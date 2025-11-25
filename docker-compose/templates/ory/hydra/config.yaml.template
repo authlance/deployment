@@ -1,0 +1,63 @@
+version: v2.0.0
+
+# Database connection (MySQL)
+dsn: mysql://${HYDRA_DB_USER}:${HYDRA_DB_PASSWORD}@tcp(mysql:3306)/${HYDRA_DB_NAME}?parseTime=true&multiStatements=true&charset=utf8mb4
+
+serve:
+  public:
+    port: 4444
+    cors:
+      enabled: true
+      allowed_origins:
+        - ${HYDRA_ISSUER_URL}
+      allowed_methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      allowed_headers:
+        - Authorization
+        - Content-Type
+        - Accept
+        - X-Requested-With
+      allow_credentials: true
+      max_age: 3600
+      debug: false
+    request_log:
+      disable_for_health: false
+  admin:
+    port: 4445
+  cookies:
+    same_site_mode: None
+    same_site_legacy_workaround: true
+    domain: "${COOKIE_DOMAIN}"
+    secure: true
+
+oauth2:
+  token_hook:
+    url: "http://authlance:8001/authlance/identity/token_hook"
+
+urls:
+  self:
+    issuer: ${HYDRA_ISSUER_URL}/authlance/openid
+    public: ${HYDRA_ISSUER_URL}/authlance/openid
+    admin: ${HYDRA_ISSUER_URL}/admin/authlance/openid/admin
+  consent: ${FRONTEND_BASE_URL}/consent
+  login: ${FRONTEND_BASE_URL}/login
+  logout: ${FRONTEND_BASE_URL}/logout
+
+secrets:
+  system:
+    - ${HYDRA_SYSTEM_SECRET}
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - pairwise
+      - public
+    pairwise:
+      salt: ${HYDRA_SYSTEM_SECRET}
+
+log:
+  level: info
+  format: text

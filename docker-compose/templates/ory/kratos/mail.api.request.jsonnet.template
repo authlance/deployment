@@ -1,0 +1,13 @@
+function(ctx) {
+  from: "${MAIL_SENDER_EMAIL}",
+  to: ctx.recipient,
+  templateId: ctx.template_type,
+  templateModel: {
+    email: ctx.template_data.identity.traits.email,
+    name: if "identity" in ctx.template_data && "traits" in ctx.template_data.identity && "name" in ctx.template_data.identity.traits then ctx.template_data.identity.traits.name else null,
+    recovery_url: if "recovery_url" in ctx.template_data then ctx.template_data.recovery_url else null,
+    verification_url: if "verification_url" in ctx.template_data then ctx.template_data.verification_url else null,
+    recovery_code: if "recovery_code" in ctx.template_data then ctx.template_data.recovery_code else null,
+    verification_code: if "verification_code" in ctx.template_data then ctx.template_data.verification_code else null
+  }
+}
