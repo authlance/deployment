@@ -5,58 +5,34 @@ server:
 security:
   - product_key: "licenseoperator-subscription"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_LICENSEOPERATOR_SUBSCRIPTION}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_LICENSEOPERATOR_SUBSCRIPTION}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
   - product_key: "licenseoperator-one-off"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_LICENSEOPERATOR_ONE_OFF}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_LICENSEOPERATOR_ONE_OFF}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
   - product_key: "core"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_CORE}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_CORE}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
   - product_key: "bundle-core-licenseoperator-subscription"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_BUNDLE_CORE_LICENSEOPERATOR_SUBSCRIPTION}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_BUNDLE_CORE_LICENSEOPERATOR_SUBSCRIPTION}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
   - product_key: "bundle-core-licenseoperator-one-off"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_BUNDLE_CORE_LICENSEOPERATOR_ONE_OFF}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_BUNDLE_CORE_LICENSEOPERATOR_ONE_OFF}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
   - product_key: "core_one_off"
     private_key_pem: |-
-      -----BEGIN RSA PRIVATE KEY-----
-      ${YOUR_PRIVATE_KEY_CORE_ONE_OFF}
-      -----END RSA PRIVATE KEY-----
+${LO_PRIVATE_KEY_PEM}
     public_key_pem: |-
-      -----BEGIN PUBLIC KEY-----
-      ${YOUR_PUBLIC_KEY_CORE_ONE_OFF}
-      -----END PUBLIC KEY-----
+${LO_PUBLIC_KEY_PEM}
 
 internal_auth:
   jwt_secret: "${LO_JWT_SECRET}"
@@ -73,7 +49,6 @@ stripe:
   success_base_url: "${LO_STRIPE_SUCCESS_BASE_URL}"
   frontend_base_path: "${LO_FRONTEND_BASE_PATH}"
   portal_return_url: "${LO_STRIPE_PORTAL_RETURN_URL}"
-  trial_period_days: ${LO_STRIPE_TRIAL_PERIOD_DAYS}
   sync_products_on_startup: ${LO_STRIPE_SYNC_PRODUCTS_ON_STARTUP}
   enable_automatic_taxes: ${LO_STRIPE_ENABLE_AUTOMATIC_TAXES}
   default_subscription_slug: "${LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG}"
@@ -93,8 +68,8 @@ stripe:
       billing_interval: "year"
       billing_interval_count: 1
       trial_period_days: 30
-      stripe_product_id: "prod_TRs9bd7o3thPuV"
-      stripe_price_id: "price_1SUyOyJI7vQ9Sj8qUtMs9sMf"
+      # stripe_product_id: "prod_xxxx"
+      # stripe_price_id: "price_xxxx"
       lookup_key: "core-subscription"
       metadata:
         tier: "core"
@@ -112,8 +87,8 @@ stripe:
       base_amount: 21900
       billing_interval: "one_time"
       term_duration_days: 365
-      stripe_product_id: "prod_xxxxx"
-      stripe_price_id: "price_xxxxx"
+      # stripe_product_id: "prod_xxxxx"
+      # stripe_price_id: "price_xxxxx"
       lookup_key: "core-one-off"
     - slug: "licenseoperator-tiered-subscription"
       name: "License Operator Tiered Subscription"
@@ -122,8 +97,8 @@ stripe:
       pricing_mode: "tiered"
       plan: "licenseoperator-subscription-tiered"
       product_key: "licenseoperator-subscription"
-      stripe_product_id: "prod_xxxxx"
-      stripe_price_id: "price_xxxxx"
+      # stripe_product_id: "prod_xxxxx"
+      # stripe_price_id: "price_xxxxx"
       active: true
       currency: "usd"
       unit_amount: 9900
@@ -157,8 +132,8 @@ stripe:
       pricing_mode: "tiered"
       plan: "licenseoperator-one-off-tiered"
       product_key: "licenseoperator-one-off"
-      stripe_product_id: "prod_xxxxx"
-      stripe_price_id: "price_xxxxx"
+      # stripe_product_id: "prod_xxxxx"
+      # stripe_price_id: "price_xxxxx"
       active: true
       currency: "usd"
       unit_amount: 9900
@@ -189,8 +164,8 @@ stripe:
       billing_interval: "year"
       billing_interval_count: 1
       trial_period_days: 30
-      stripe_product_id: "prod_xxxxx"
-      stripe_price_id: "price_xxxxx"
+      # stripe_product_id: "prod_xxxxx"
+      # stripe_price_id: "price_xxxxx"
       lookup_key: "core-licenseoperator-bundle-subscription"
       metadata:
         bundle: "core+licenseoperator"
@@ -214,8 +189,8 @@ stripe:
       base_amount: 29900
       billing_interval: "one_time"
       term_duration_days: 365
-      stripe_product_id: "prod_xxxxx"
-      stripe_price_id: "price_xxxxx"
+      # stripe_product_id: "prod_xxxxx"
+      # stripe_price_id: "price_xxxxx"
       lookup_key: "core-licenseoperator-bundle-one-off"
       metadata:
         bundle: "core+licenseoperator"
