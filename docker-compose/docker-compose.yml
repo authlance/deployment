@@ -138,7 +138,8 @@ services:
         envsubst < /templates/app/auth/config.yaml.template > /out/app/auth/config.yaml;
         envsubst < /templates/app/license/config.yaml.template > /out/app/license/config.yaml;
         if [ -f /licenses/authlance.lic ]; then cp /licenses/authlance.lic /out/app/auth/authlance.lic; fi;
-        cp /templates/app/license/trialLicense /out/app/license/trialLicense;
+        LICENSE_SRC="${LO_LICENSE_FILE:-/licenses/licenseoperator.lic}";
+        if [ -f "${LICENSE_SRC}" ]; then cp "${LICENSE_SRC}" /out/app/license/licenseoperator.lic; else cp /templates/app/license/trialLicense /out/app/license/licenseoperator.lic; fi;
         echo "Templates rendered.";
     environment:
       - KRATOS_DB_NAME=${KRATOS_DB_NAME}
@@ -148,6 +149,7 @@ services:
       - HYDRA_DB_USER=${HYDRA_DB_USER}
       - HYDRA_DB_PASSWORD=${HYDRA_DB_PASSWORD}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
+      - BASE_PREFIX=${BASE_PREFIX}
       - KRATOS_PUBLIC_BASE_URL=${KRATOS_PUBLIC_BASE_URL}
       - OAUTH2_PROVIDER_AUTH_HEADER=${OAUTH2_PROVIDER_AUTH_HEADER}
       - REGISTRATION_WEBHOOK_URL="http://authlance:${MAIL_PORT}/authlance/identity/email/register"
@@ -174,6 +176,7 @@ services:
       - HYDRA_PUBLIC_URL=${HYDRA_PUBLIC_URL}
       - HYDRA_ADMIN_URL=${HYDRA_ADMIN_URL}
       - HYDRA_LOGIN_TOKEN=${HYDRA_LOGIN_TOKEN}
+      - AUTH_HOOK_HOST=${AUTH_HOOK_HOST}
       - NATS_URL=${NATS_URL}
       - AUTH_JWT_KEY=${AUTH_JWT_KEY}
       - COOKIE_DOMAIN=${COOKIE_DOMAIN}
@@ -231,6 +234,7 @@ services:
       - LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG=${LO_STRIPE_DEFAULT_SUBSCRIPTION_SLUG}
       - LO_STRIPE_DEFAULT_ONE_OFF_SLUG=${LO_STRIPE_DEFAULT_ONE_OFF_SLUG}
       - LO_FRONTEND_BASE_PATH=${LO_FRONTEND_BASE_PATH}
+      - LO_LICENSE_FILE=${LO_LICENSE_FILE}
       - LO_LICENSE_FILE_PATH=${LO_LICENSE_FILE_PATH}
       - LO_LICENSE_EXPECTED_DOMAIN=${LO_LICENSE_EXPECTED_DOMAIN}
       - LO_LICENSE_GRACE_DAYS=${LO_LICENSE_GRACE_DAYS}

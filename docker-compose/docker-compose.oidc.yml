@@ -1,0 +1,25 @@
+---
+version: "3.9"
+services:
+  ory-templates:
+    environment:
+      - OIDC_GOOGLE_CLIENT_ID=${OIDC_GOOGLE_CLIENT_ID}
+      - OIDC_GOOGLE_CLIENT_SECRET=${OIDC_GOOGLE_CLIENT_SECRET}
+    entrypoint: ["/bin/sh","-c"]
+    command:
+      - >-
+        set -euo pipefail;
+        apk add --no-cache gettext >/dev/null;
+        mkdir -p /out/kratos /out/hydra /out/app/auth /out/app/license;
+        envsubst < /templates/ory/kratos/kratos.yml.oidc.template > /out/kratos/kratos.yml;
+        envsubst < /templates/ory/kratos/identity.schema.json.template > /out/kratos/identity.schema.json;
+        envsubst < /templates/ory/kratos/mail.api.request.jsonnet.template > /out/kratos/mail.api.request.jsonnet;
+        envsubst < /templates/ory/kratos/register.api.request.jsonnet.template > /out/kratos/register.api.request.jsonnet;
+        cp /templates/ory/kratos/oidc.google.jsonnet /out/kratos/oidc.google.jsonnet;
+        envsubst < /templates/ory/hydra/config.yaml.template > /out/hydra/config.yaml;
+        envsubst < /templates/app/auth/config.yaml.template > /out/app/auth/config.yaml;
+        envsubst < /templates/app/license/config.yaml.template > /out/app/license/config.yaml;
+        if [ -f /licenses/authlance.lic ]; then cp /licenses/authlance.lic /out/app/auth/authlance.lic; fi;
+        LICENSE_SRC="${LO_LICENSE_FILE:-/licenses/licenseoperator.lic}";
+        if [ -f "${LICENSE_SRC}" ]; then cp "${LICENSE_SRC}" /out/app/license/licenseoperator.lic; else cp /templates/app/license/trialLicense /out/app/license/licenseoperator.lic; fi;
+        echo "Templates rendered (with OIDC).";

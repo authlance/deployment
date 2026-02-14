@@ -42,6 +42,24 @@ selfservice:
       enabled: true
     code:
       enabled: true
+    oidc:
+      enabled: true
+      config:
+        providers:
+          - id: google
+            provider: google
+            client_id: ${OIDC_GOOGLE_CLIENT_ID}
+            client_secret: ${OIDC_GOOGLE_CLIENT_SECRET}
+            mapper_url: file:///etc/kratos/oidc.google.jsonnet
+            scope:
+              - email
+              - profile
+            requested_claims:
+              id_token:
+                email:
+                  essential: true
+                email_verified:
+                  essential: true
 
   flows:
     error:
@@ -80,6 +98,16 @@ selfservice:
           hooks:
             - hook: session
             - hook: show_verification_ui
+            - hook: web_hook
+              config:
+                method: POST
+                url: ${REGISTRATION_WEBHOOK_URL}
+                body: file:///etc/kratos/register.api.request.jsonnet
+                headers:
+                  Authorization: ${REGISTRATION_WEBHOOK_AUTH_HEADER}
+        oidc:
+          hooks:
+            - hook: session
             - hook: web_hook
               config:
                 method: POST

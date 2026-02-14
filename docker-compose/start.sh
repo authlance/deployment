@@ -8,9 +8,20 @@ if [ ! -f .env ]; then
   echo "Edit .env with your settings, then re-run this script."
 fi
 
+COMPOSE_FILES="-f docker-compose.yml"
+
+for arg in "$@"; do
+  if [ "$arg" == "--expose-ory" ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.expose-ory.yml"
+  fi
+  if [ "$arg" == "--enable-oidc" ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.oidc.yml"
+  fi
+done
+
 echo "Rendering and starting stack..."
-docker compose pull --ignore-pull-failures
-docker compose up -d
+docker compose $COMPOSE_FILES pull --ignore-pull-failures
+docker compose $COMPOSE_FILES up -d
 
 echo "Stack starting. Health checks:"
 KRATOS_ADMIN_PORT=${KRATOS_ADMIN_PORT:-4434}
