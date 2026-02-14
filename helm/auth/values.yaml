@@ -35,6 +35,8 @@ imageCredentials:
 # to change the default behavior. Please read the comments below to see details.
 #
 ingress:
+  # NOTE: When deployed via umbrella chart, this MUST be false
+  # The umbrella chart owns the single Ingress resource
   enabled: true
   annotations:
     external-dns.alpha.kubernetes.io/hostname: DUNA_AUTH_HOSTNAME

@@ -35,16 +35,22 @@ serve:
 
 oauth2:
   token_hook:
-    url: "http://authlance:8001/authlance/identity/token_hook"
+    url: "http://${AUTH_HOOK_HOST}/authlance/identity/token_hook"
+    auth:
+      type: api_key
+      config:
+        in: header
+        name: Authorization
+        value: "Bearer ${HYDRA_LOGIN_TOKEN}"
 
 urls:
   self:
     issuer: ${HYDRA_ISSUER_URL}/authlance/openid
     public: ${HYDRA_ISSUER_URL}/authlance/openid
-    admin: ${HYDRA_ISSUER_URL}/admin/authlance/openid/admin
-  consent: ${FRONTEND_BASE_URL}/consent
-  login: ${FRONTEND_BASE_URL}/login
-  logout: ${FRONTEND_BASE_URL}/logout
+    admin: ${HYDRA_ISSUER_URL}/authlance/openid/admin
+  consent: ${FRONTEND_BASE_URL}${BASE_PREFIX}/consent
+  login: ${FRONTEND_BASE_URL}${BASE_PREFIX}/login
+  logout: ${FRONTEND_BASE_URL}${BASE_PREFIX}/logout
 
 secrets:
   system:

@@ -24,6 +24,8 @@ imageCredentials:
   email: unused
 
 ingress:
+  # NOTE: When deployed via umbrella chart, this MUST be false
+  # The umbrella chart owns the single Ingress resource
   enabled: true
   annotations:
     external-dns.alpha.kubernetes.io/hostname: LICENSEOPERATOR_HOSTNAME

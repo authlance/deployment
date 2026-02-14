@@ -75,21 +75,28 @@ stripe:
   trialPeriodDays: ${STRIPE_TRIAL_PERIOD_DAYS}
   portalReturnUrl: "${STRIPE_PORTAL_RETURN_URL}"
 
+appStore:
+  enabled: ${APPSTORE_ENABLED}
+  bundleId: "${APPSTORE_BUNDLE_ID}"
+  rootCerts:
+    - "${APPSTORE_ROOT_CERT_1}"
+    - "${APPSTORE_ROOT_CERT_2}"
+  allowSandbox: ${APPSTORE_ALLOW_SANDBOX}
+
 license:
   filePath: "${LICENSE_PATH}"
   refreshInterval: "${LICENSE_REFRESH_INTERVAL}"
   gracePeriodDays: ${LICENSE_GRACE_PERIOD_DAYS}
 
-# paymentTier is optional. Uncomment and fill when you need to enforce a tiered
-# membership cap for subscriptions. See docs/deployment/docker-compose for
-# guidance on customizing these templates.
-# paymentTier:
-#   tierName: "Standard"
-#   maxMembers: 5
-#   price: 10.0
-#   billingCycle: "monthly"
-#   lookupKey: "standard_monthly"
-#   tierDescription: "Standard tier for individual users"
+# paymentTier should match with a Stripe Price created in your Stripe Dashboard
+# use lookup_key to match the Price ID in Stripe
+paymentTier:
+  tierName: "Standard"
+  maxMembers: 5
+  price: 10.0
+  billingCycle: "monthly"
+  lookupKey: "standard_monthly"
+  tierDescription: "Standard tier for individual users"
 
 events:
   disableUserAuthenticated: ${AUTH_EVENTS_DISABLE_USER_AUTHENTICATED}
