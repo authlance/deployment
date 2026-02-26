@@ -15,5 +15,11 @@ local claims = { email_verified: false } + std.extVar('claims');
         },
       },
     },
+    [if 'email' in claims && claims.email_verified then 'verified_addresses' else null]: [
+      {
+        via: 'email',
+        value: claims.email,
+      },
+    ],
   },
 }

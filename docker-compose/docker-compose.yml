@@ -300,7 +300,7 @@ services:
       - default
 
   nats:
-    image: nats:2.10-alpine
+    image: nats:2.11-alpine
     container_name: ${COMPOSE_PROJECT_NAME}-nats
     command: ["-js","-m","8222"]
     ports:
