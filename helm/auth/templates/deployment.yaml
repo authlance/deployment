@@ -55,6 +55,12 @@ spec:
               subPath: "authlance.lic"
               readOnly: true
             {{- end }}
+            {{- if .Values.appStoreConnect.enabled }}
+            - name: {{ include "duna.fullname" . }}-appstore-cert
+              mountPath: "/app/config/AppleRootCA-G3.pem"
+              subPath: "AppleRootCA-G3.pem"
+              readOnly: true
+            {{- end }}
 
           # 
           # Set container configuration
@@ -105,6 +111,14 @@ spec:
             items:
               - key: authlance.lic
                 path: authlance.lic
+        {{- end }}
+        {{- if .Values.appStoreConnect.enabled }}
+        - name: {{ include "duna.fullname" . }}-appstore-cert
+          secret:
+            secretName: {{ .Values.appStoreConnect.secretName }}
+            items:
+              - key: AppleRootCA-G3.pem
+                path: AppleRootCA-G3.pem
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
